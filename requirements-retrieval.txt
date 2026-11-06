@@ -1,0 +1,8 @@
+pypdf
+pandas
+pyarrow
+pinecone
+faiss-cpu
+python-dotenv
+
+numpy
