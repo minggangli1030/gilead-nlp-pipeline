@@ -2,7 +2,7 @@
 
 ## Parsing
 
-The primary parser recursively processes PDFs, reconstructs wrapped text, filters probable tables, splits sentences, and writes stable row/document/sentence identifiers. Deduplication is within each document. Heuristics may remove meaningful text or retain noise; this is not a layout-aware or OCR parser. The shared module also retains the historical folder-processing CLI, which moves originals; use the documented batch entry point for a non-moving workflow.
+The primary parser recursively processes PDFs, reconstructs wrapped text, filters probable tables, splits sentences, and writes stable row/document/sentence identifiers. Deduplication is within each document. Heuristics may remove meaningful text or retain noise; this is not a layout-aware or OCR parser. The shared module exposes reusable helpers; its historical folder-moving CLI was removed. The documented batch entry point leaves source PDFs in place.
 
 ## Scoring
 

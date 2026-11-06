@@ -72,4 +72,4 @@ This repository showcases implementation and experiment structure. It includes n
 
 ## Attribution and release
 
-Developed in the Gilead Discovery team project; this repository presents my Fall 2025 implementation. No employer endorsement is implied. Dependencies and pretrained models retain their own terms. No new license is assigned to the adapted project code here; publication rights must be confirmed separately from removal of confidential data.
+Developed in the Gilead Discovery team project; this repository presents my Fall 2025 implementation. No employer endorsement is implied. Dependencies and pretrained models retain their own terms. The author confirmed this code may be published with original data removed. No new project-wide license is assigned here.

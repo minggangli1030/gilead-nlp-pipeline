@@ -1,18 +1,12 @@
 #!/usr/bin/env python3
 """
-Simple PDF Parser
-Processes all PDFs in a bank folder and creates Original_PDF and Parsed_CSV subfolders
-Usage: python3 parse_pdfs.py 2025_Q3/EXAMPLE/BMO/
+Reusable PDF extraction, text cleaning, sentence segmentation, and metadata helpers.
+Use scripts/parse_documents.py as the batch entry point.
 """
 
-import argparse
-import csv
 import re
 import sys
-import os
-import shutil
 from pathlib import Path
-import nltk
 
 try:
     import PyPDF2
@@ -321,119 +315,3 @@ def extract_metadata(pdf_path, text):
         'year': year,
         'quarter': quarter
     }
-
-
-def create_parsed_csv(text, output_path):
-    """Create parsed CSV listing every sentence in order."""
-    # Extract sentences from the report text
-    sentences = extract_sentences(text)
-
-    with open(output_path, 'w', newline='', encoding='utf-8') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(['sentence_number', 'sentence'])
-        for i, sentence in enumerate(sentences, 1):
-            writer.writerow([i, sentence])
-
-
-def process_bank_folder(bank_folder):
-    """Process all PDFs in a bank folder."""
-    bank_path = Path(bank_folder)
-    
-    if not bank_path.exists():
-        print(f"Error: Folder '{bank_folder}' not found")
-        return False
-    
-    # Find all PDF files in the folder (including root and Original_PDF subfolder)
-    pdf_files = list(bank_path.glob("*.pdf"))
-    
-    # Also check Original_PDF subfolder for existing files (don't reprocess)
-    original_pdf_dir = bank_path / "Original_PDF"
-    parsed_csv_dir = bank_path / "Parsed_CSV"
-    
-    # Create subfolders if they don't exist
-    original_pdf_dir.mkdir(exist_ok=True)
-    parsed_csv_dir.mkdir(exist_ok=True)
-    
-    # Check for PDFs that need processing (not already in Original_PDF)
-    if not pdf_files:
-        print(f"No new PDF files found in {bank_folder} to process")
-        existing_pdfs = list(original_pdf_dir.glob("*.pdf"))
-        if existing_pdfs:
-            print(f"Found {len(existing_pdfs)} already processed PDFs in Original_PDF folder")
-        return len(existing_pdfs) > 0
-    
-    print(f"Processing {len(pdf_files)} PDF files in {bank_folder}...")
-    print("-" * 50)
-    
-    processed = 0
-    failed = 0
-    
-    for pdf_path in pdf_files:
-        print(f"Processing: {pdf_path.name}")
-        
-        try:
-            # Check if already processed (CSV files exist)
-            base_name = pdf_path.stem
-            parsed_csv = parsed_csv_dir / f"{base_name}_parsed.csv"
-            
-            if parsed_csv.exists():
-                print(f"  ⚠ Already processed (CSV files exist)")
-                # Move PDF to Original_PDF if not already there
-                if pdf_path.parent != original_pdf_dir:
-                    original_pdf = original_pdf_dir / pdf_path.name
-                    shutil.move(str(pdf_path), str(original_pdf))
-                processed += 1
-                continue
-            
-            # Extract text
-            text = extract_text_from_pdf(pdf_path)
-            if text is None:
-                print(f"  ✗ Failed to extract text")
-                failed += 1
-                continue
-            
-            # Get metadata
-            metadata = extract_metadata(pdf_path, text)
-            
-            # Create CSV file with ordered sentences
-            create_parsed_csv(text, parsed_csv)
-            
-            # Move original PDF to Original_PDF folder
-            original_pdf = original_pdf_dir / pdf_path.name
-            if pdf_path.parent != original_pdf_dir:
-                shutil.move(str(pdf_path), str(original_pdf))
-            
-            print(f"  ✓ Processed → {metadata['bank']} | {metadata['quarter']} {metadata['year']} | {metadata['date']}")
-            processed += 1
-            
-        except Exception as e:
-            print(f"  ✗ Error: {e}")
-            failed += 1
-    
-    print("-" * 50)
-    print(f"SUMMARY:")
-    print(f"  Processed: {processed}")
-    print(f"  Failed: {failed}")
-    print(f"  Original PDFs in: {original_pdf_dir}")
-    print(f"  Parsed CSVs in: {parsed_csv_dir}")
-    
-    return processed > 0
-
-
-def main():
-    parser = argparse.ArgumentParser(description='Process PDFs in a bank folder')
-    parser.add_argument('bank_folder', help='Path to bank folder containing PDF files')
-    
-    args = parser.parse_args()
-    
-    success = process_bank_folder(args.bank_folder)
-    
-    if success:
-        print("\n✓ Processing complete!")
-    else:
-        print("\n✗ Processing failed!")
-        sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()
